@@ -20,6 +20,7 @@ A comprehensive, beginner-friendly guide to setting up a full-stack application 
 12. [Cache Invalidation After Mutations](#12-cache-invalidation-after-mutations)
 13. [Architectural Rules (The Golden Pattern)](#13-architectural-rules-the-golden-pattern)
 14. [Authentication Middleware](#14-authentication-middleware)
+15. [Bun-First Runtime & Tooling](#15-bun-first-runtime-tooling)
 
 ---
 
@@ -943,19 +944,54 @@ export const Route = createFileRoute('/admin')({
 
 ---
 
+## 15. Bun-First Runtime & Tooling
+
+For maximum performance and developer velocity, we recommend adopting a **Bun-first** workflow. Bun is an all-in-one JavaScript runtime and package manager that is significantly faster than Node.js and npm.
+
+### Requirement: Use Bun as the Primary Runtime
+
+- **Package Management:** Use `bun install` instead of `npm install`. It generates a binary `bun.lockb` file and is up to 30x faster.
+- **Project Config (`app.config.ts` or `vite.config.ts`):** 
+  Standardize your deployment preset to Bun:
+  ```typescript
+  export default defineConfig({
+    server: {
+      preset: 'bun'
+    }
+  })
+  ```
+
+- **Vite Integration:** Force Vite to run directly in the Bun runtime for sub-millisecond Hot Module Replacement (HMR). Prefix your scripts in `package.json` with `bun --bun`:
+  ```json
+  "scripts": {
+    "dev": "bun --bun vite dev",
+    "build": "bun --bun vite build", 
+    "start": "bun run .output/server/index.mjs",
+    "test": "bun test",
+    "test:watch": "bun test --watch",
+    "test:ui": "bun test --watch"
+  }
+  ```
+
+- **Testing:** Standardize on Bun's built-in `bun:test` runner. It is fully compatible with Jest but runs much faster. Use the `.test.ts` naming convention for all test files.
+
+---
+
 ## Running the Application
 
+If using Bun:
+
 ```bash
-# Development
-npm run dev
+# Install dependencies
+bun install
+
+# Development with sub-millisecond HMR
+bun dev
 
 # Build for production
-npm run build
-
-# Preview production build
-npm run preview
+bun run build
 ```
 
 ---
 
-Happy building! 🚀
+Happy building with Bun! 🚀
