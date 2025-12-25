@@ -975,6 +975,65 @@ For maximum performance and developer velocity, we recommend adopting a **Bun-fi
 
 - **Testing:** Standardize on Bun's built-in `bun:test` runner. It is fully compatible with Jest but runs much faster. Use the `.test.ts` naming convention for all test files.
 
+### Writing Tests with `bun:test`
+
+Bun provides a fast, built-in test runner with a Jest-compatible API. You don't need to install any extra packages.
+
+#### 1. Basic Unit Test
+Create a file like `math.test.ts`:
+
+```typescript
+import { expect, test, describe } from "bun:test";
+
+const add = (a: number, b: number) => a + b;
+
+describe("Math functions", () => {
+  test("adds 1 + 2 to equal 3", () => {
+    expect(add(1, 2)).toBe(3);
+  });
+});
+```
+
+#### 2. Mocking Functions
+Bun has a built-in `mock` utility for spying on and replacing function implementations:
+
+```typescript
+import { expect, test, mock } from "bun:test";
+
+test("mocking a function", () => {
+  const myMock = mock((name: string) => `Hello ${name}`);
+  
+  expect(myMock("World")).toBe("Hello World");
+  expect(myMock).toHaveBeenCalled();
+  expect(myMock).toHaveBeenCalledWith("World");
+});
+```
+
+#### 3. Testing Data Layer Functions (Mocking Modules)
+You can use `mock.module` to mock entire dependencies, like your database or external APIs:
+
+```typescript
+import { expect, test, mock } from "bun:test";
+
+// Mock the db module before importing the function that uses it
+mock.module("@/db", () => ({
+  db: {
+    select: mock(() => ({
+      from: mock(() => [{ id: "1", name: "Test Product" }]),
+    })),
+  },
+}));
+
+import { getAllProducts } from "@/data/products";
+
+test("getAllProducts returns data from mocked db", async () => {
+  const products = await getAllProducts();
+  expect(products).toHaveLength(1);
+  expect(products[0].name).toBe("Test Product");
+});
+```
+
+
 ---
 
 ## Running the Application
